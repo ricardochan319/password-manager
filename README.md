@@ -1,1 +1,1 @@
-# password_gen
+# password_manager
