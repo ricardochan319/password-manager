@@ -4,10 +4,30 @@ import secrets
 import string
 import hashlib
 import csv
+import pyperclip
 
 def generate_password():
-    alphabet = string.ascii_letters + string.digits + string.punctuation
-    password = ''.join(secrets.choice(alphabet) for _ in range(12))
+    # Define character sets for password generation
+    lowercase_letters = string.ascii_lowercase
+    uppercase_letters = string.ascii_uppercase
+    digits = string.digits
+    symbols = string.punctuation
+
+    # Ensure at least one character from each set is included
+    password = (
+        secrets.choice(lowercase_letters) +
+        secrets.choice(uppercase_letters) +
+        secrets.choice(digits) +
+        secrets.choice(symbols) +
+        ''.join(secrets.choice(lowercase_letters + uppercase_letters + digits + symbols) for _ in range(8))
+    )
+
+    # Shuffle the password to ensure randomness
+    password_list = list(password)
+    secrets.SystemRandom().shuffle(password_list)
+    password = ''.join(password_list)
+
+    # Update the password entry field
     entry_password.delete(0, tk.END)
     entry_password.insert(0, password)
 
@@ -27,6 +47,9 @@ def save_password():
     with open('password.csv', mode='a', newline='') as file:
         writer = csv.writer(file)
         writer.writerow([website, username, hashed_password])
+
+    # Copy the password to the clipboard
+    pyperclip.copy(password)
 
     messagebox.showinfo("Password Manager", "Password Saved Successfully!")
 
