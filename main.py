@@ -1,8 +1,7 @@
 import tkinter as tk
-from tkinter import Entry, messagebox
+from tkinter import Entry, messagebox, simpledialog
 import secrets
 import string
-import hashlib
 import json
 import os
 import pyperclip
@@ -41,9 +40,6 @@ def save_password():
         messagebox.showwarning("Password Manager", "Please fill in all fields.")
         return
 
-    # Hash the password before saving
-    hashed_password = hashlib.sha256(password.encode()).hexdigest()
-
     # Check if the JSON file exists
     if not os.path.exists('passwords.json') or os.path.getsize('passwords.json') == 0:
         # If it doesn't, create an empty JSON file
@@ -55,7 +51,7 @@ def save_password():
         data = json.load(file)
 
     # Append the new password details
-    data.append({"website": website, "username": username, "password": hashed_password})
+    data.append({"website": website, "username": username, "password": password})
 
     # Save the updated data back to the JSON file
     with open('passwords.json', 'w') as file:
