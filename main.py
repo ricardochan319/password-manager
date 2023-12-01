@@ -3,7 +3,8 @@ from tkinter import Entry, messagebox
 import secrets
 import string
 import hashlib
-import csv
+import json
+import os
 import pyperclip
 
 def generate_password():
@@ -43,15 +44,47 @@ def save_password():
     # Hash the password before saving
     hashed_password = hashlib.sha256(password.encode()).hexdigest()
 
-    # Save the password details to the CSV file
-    with open('password.csv', mode='a', newline='') as file:
-        writer = csv.writer(file)
-        writer.writerow([website, username, hashed_password])
+    # Check if the JSON file exists
+    if not os.path.exists('passwords.json') or os.path.getsize('passwords.json') == 0:
+        # If it doesn't, create an empty JSON file
+        with open('passwords.json', 'w') as file:
+            json.dump([], file, indent=2)
+
+    # Load existing data from the JSON file
+    with open('passwords.json', 'r') as file:
+        data = json.load(file)
+
+    # Append the new password details
+    data.append({"website": website, "username": username, "password": hashed_password})
+
+    # Save the updated data back to the JSON file
+    with open('passwords.json', 'w') as file:
+        json.dump(data, file, indent=2)
 
     # Copy the password to the clipboard
     pyperclip.copy(password)
 
     messagebox.showinfo("Password Manager", "Password Saved Successfully!")
+
+def search_password():
+    website_to_search = entry_website.get()
+    if not website_to_search:
+        messagebox.showwarning("Password Manager", "Please enter a website to search.")
+        return
+
+    # Load existing data from the JSON file
+    with open('passwords.json', 'r') as file:
+        data = json.load(file)
+
+    # Search for the credentials based on the entered website
+    found_credentials = [entry for entry in data if entry['website'].lower() == website_to_search.lower()]
+
+    if not found_credentials:
+        messagebox.showinfo("Password Manager", "No credentials found for the specified website.")
+    else:
+        # Display the username and password in a pop-up window
+        popup_message = f"Username: {found_credentials[0]['username']}\nPassword: {found_credentials[0]['password']}"
+        messagebox.showinfo("Password Manager", popup_message)
 
 # Create the main window
 root = tk.Tk()
@@ -75,6 +108,10 @@ label_password.grid(row=3, column=0, pady=5, padx=10, sticky="w")
 # Entry widgets
 entry_website = Entry(root, width=30)
 entry_website.grid(row=1, column=1, pady=5, padx=10)
+
+# Button for searching passwords
+button_search = tk.Button(root, text="Search Password", command=search_password)
+button_search.grid(row=1, column=2, pady=5, padx=10, sticky="nsew")
 
 entry_username = Entry(root, width=30)
 entry_username.grid(row=2, column=1, pady=5, padx=10)
